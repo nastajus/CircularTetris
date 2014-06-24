@@ -3,15 +3,19 @@ using System.Collections;
 
 public class SpawnBlocks : MonoBehaviour {
 	private float timer;
-	public static float blockAdvanceTime = .2f;
+	public static float blockAdvanceTime = 2f;
 	private GameObject gridGO;
 	public static int[,] gridActiveBlocks = new int[13,16];
 	private bool movingBlockExists = false;
 	private GameObject movingBlock;
 	private bool logicCollision = false;
-	private int movingBlockHeight; //0-12, starts at 3, hidden 0-2
-	private int movingBlockWidth; //0-15
-	private const int maxBlockPos = 9; //visible spectrum
+	private int movingBlockPosY; //0-12, starts at 3, hidden 0-2
+	private int movingBlockPosX; //0-15
+	private const int maxBlockPosY = 9; //visible spectrum
+	private const int maxBlockPosX = 15;
+	private bool roomToSpawnExists = true;
+	private int spawnPosX = 0;
+	private int spawnPosY = 0;
 
 	private GameObject[] arrayAtomicBlock = new GameObject[10];
 
@@ -30,7 +34,10 @@ public class SpawnBlocks : MonoBehaviour {
 				gridActiveBlocks[i,j] = 0;
 			}
 		}
-		DebugGrid();
+		spawnPosX = 0;
+		spawnPosY = 0;
+
+		//DebugGrid();
 	}
 
 	void FixedUpdate(){
@@ -42,7 +49,7 @@ public class SpawnBlocks : MonoBehaviour {
 			PushBlockOut();
 		}
 
-		if (!movingBlockExists){
+		if (!movingBlockExists & roomToSpawnExists){
 			Spawn();
 		}
 
@@ -72,66 +79,123 @@ public class SpawnBlocks : MonoBehaviour {
 
 		if (Input.GetMouseButtonDown(1))
 		{
-			//rotate left
+			//rotate right
 			Debug.Log ("Right");
 		}
 
-		if (Input.GetAxis("Mouse ScrollWheel")!=0){
-			//move around circularly
-			Debug.Log ( Input.GetAxis("Mouse ScrollWheel") );
+		//scroll up
+		if (Input.GetAxis("Mouse ScrollWheel") > 0){
+			//move ccw
+			Debug.Log ("+");
+			PushBlockSideways(true);
+		}
+
+		//scroll down
+		else if (Input.GetAxis("Mouse ScrollWheel") < 0){
+			//move cw
+			Debug.Log ("-");
+			PushBlockSideways(false);
 		}
 
 	}
 
-	void Spawn(){
-		movingBlockHeight = 0;
-		movingBlockWidth = 0;
-		gridActiveBlocks[movingBlockHeight+3, movingBlockWidth] = 1;
-		movingBlock = (GameObject) Instantiate ( arrayAtomicBlock[movingBlockHeight], new Vector3(0.8f, -2.1f, 0.1f), Quaternion.identity );
-		movingBlockExists = true;
+	bool Spawn(){
+		movingBlockPosY = 0;
+		movingBlockPosX = 0;
+
+		if (gridActiveBlocks[spawnPosY+3, spawnPosX] == 0){
+
+			gridActiveBlocks[spawnPosY+3, spawnPosX] = 1;
+			Vector3 blockPos = CalcBlockRenderPos();
+			Quaternion blockRot = Quaternion.identity * Quaternion.Euler(0f,0f, 22.5f * movingBlockPosX);
+			movingBlock = (GameObject) Instantiate ( arrayAtomicBlock[movingBlockPosY], blockPos, blockRot );
+			movingBlockExists = true;
+			return true;
+		}
+		else 
+			return false;
 	}
 
 	void PushBlockOut(){
 
 		//check if logic collision happens
-		bool condA = movingBlockHeight + 1 > maxBlockPos;  //WILL BE OUT OF BOUNDS
+		bool condA = movingBlockPosY + 1 > maxBlockPosY;  //WILL BE OUT OF BOUNDS
 
 		//contrapositive applied here 
-		if ( !condA && !(gridActiveBlocks[movingBlockHeight+1+3,movingBlockWidth] == 1 )) {  // condA is only used for it's short circuiting property
+		if ( !condA && !(gridActiveBlocks[movingBlockPosY+1+3,movingBlockPosX] == 1 )) {  // condA is only used for it's short circuiting property
 			logicCollision = false;
 		}
 		else {
 			logicCollision = true;
 			//lock block
 			//??? delay ???
+
+			//check if room
+			roomToSpawnExists = false;
+
 			Spawn ();
 		}
 
-		if (movingBlockExists && movingBlockHeight < maxBlockPos && !logicCollision){
-			gridActiveBlocks[movingBlockHeight+3,movingBlockWidth] = 0;
-			movingBlockHeight++;
-			Vector3 blockPos = CalcBlockPos();
+		//performs so called block movement, if allowed
+		if (movingBlockExists && movingBlockPosY < maxBlockPosY && !logicCollision){
+			gridActiveBlocks[movingBlockPosY+3,movingBlockPosX] = 0;
+			movingBlockPosY++;
+			Vector3 blockPos = CalcBlockRenderPos();
 			Destroy(movingBlock);
-			movingBlock = (GameObject) Instantiate ( arrayAtomicBlock[movingBlockHeight], blockPos, Quaternion.identity );
-			gridActiveBlocks[movingBlockHeight+3,movingBlockWidth] = 1;
-			DebugGrid();
+			movingBlock = (GameObject) Instantiate ( arrayAtomicBlock[movingBlockPosY], blockPos, Quaternion.identity );
+			gridActiveBlocks[movingBlockPosY+3,movingBlockPosX] = 1;
+			//DebugGrid();
 
 
 		}
-//		else if ( movingBlockHeight >= maxBlockPos ){
-//			//lock block
-//			//??? delay ???
-//			Spawn ();
-//		}
 	}
 
-	Vector3 CalcBlockPos(){
-		float dd = 20.5f / 10.5f;
-		float d = dd * (movingBlockHeight+1);
-		float y = d * Mathf.Cos( 11.125f * Mathf.Deg2Rad );
-		float x = d * Mathf.Sin( 11.125f * Mathf.Deg2Rad );
+	void PushBlockSideways(bool positiveScroll){
+
+		int modifier;
+		if (positiveScroll) modifier = 1; 
+		else modifier = -1; 
+
+		int clockX = (int) nfmod ( (float)(movingBlockPosX + modifier), (float)maxBlockPosX + 1);
+
+		//check if logic collision happens
+		 //WILL BE OUT OF BOUNDS
+		
+		//contrapositive applied here 
+		if ( !(gridActiveBlocks[movingBlockPosY+3,clockX] == 1 )) {  // condA is only used for it's short circuiting property
+			logicCollision = false;
+		}
+		else {
+			logicCollision = true;
+
+		}
+
+
+		//performs so called block movement, if allowed
+		if (!logicCollision){
+			gridActiveBlocks[movingBlockPosY+3,movingBlockPosX] = 0;
+			Destroy(movingBlock);
+			movingBlockPosX = clockX;
+			Vector3 blockPos = CalcBlockRenderPos();
+			Quaternion blockRot = Quaternion.identity * Quaternion.Euler(0f,0f, 22.5f * movingBlockPosX);
+			movingBlock = (GameObject) Instantiate ( arrayAtomicBlock[movingBlockPosY], blockPos, blockRot );
+			gridActiveBlocks[movingBlockPosY+3,movingBlockPosX] = 1;
+			//DebugGrid();
+			
+			
+		}
+	}
+
+	Vector3 CalcBlockRenderPos(){
+		float dist_incr = 20.5f / 10.5f;
+		float d = dist_incr * (movingBlockPosY+1);
+		float angle_offset = 11.125f;
+		float a = angle_offset + (22.5f * movingBlockPosX );
+		Debug.Log ( a );
+		float x = d * Mathf.Sin( a * Mathf.Deg2Rad );
+		float y = d * Mathf.Cos( a * Mathf.Deg2Rad );
 		float z = 0.1f;
-		Debug.Log ( x + ", " + y);
+		//Debug.Log ( x + ", " + y);
 		return new Vector3 (x,-y,z);
 	}
 
@@ -147,5 +211,11 @@ public class SpawnBlocks : MonoBehaviour {
 		}
 		Debug.Log ( lines );
 	}
-	
+
+	//C# Modulus Is WRONG!
+	//http://answers.unity3d.com/questions/380035/c-modulus-is-wrong-1.html
+	float nfmod(float a, float b)
+	{
+		return a - b * Mathf.Floor(a / b);
+	}
 }
