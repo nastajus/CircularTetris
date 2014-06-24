@@ -3,9 +3,10 @@ using System.Collections;
 
 public class SpawnBlocks : MonoBehaviour {
 	private float timer;
-	public static float blockAdvanceTime = .2f;
-	private GameObject gridGO;
+	public static float blockAdvanceTime = .1f;
+	//private GameObject gridGO;
 	public static int[,] gridActiveBlocks = new int[13,16];
+	public static GameObject[,] gridActiveBlocksGO = new GameObject[13,16];
 	private bool movingBlockExists = false;
 	private GameObject movingBlock;
 	private bool logicCollision = false;
@@ -16,6 +17,8 @@ public class SpawnBlocks : MonoBehaviour {
 	private bool roomToSpawnExists = true;
 	private int spawnPosX = 0;
 	private int spawnPosY = 0;
+	private int score = 0;
+	private AudioSource aud;
 
 	private GameObject[] arrayAtomicBlock = new GameObject[10];
 
@@ -23,8 +26,8 @@ public class SpawnBlocks : MonoBehaviour {
 	void Start () {
 		//initialize timer
 		timer = Time.time;
-		gridGO = GameObject.FindGameObjectWithTag("Grid");
-		Debug.Log ( gridGO.renderer.bounds.extents ) ;
+//		gridGO = GameObject.FindGameObjectWithTag("Grid");
+//		Debug.Log ( gridGO.renderer.bounds.extents ) ;
 		for (int i=0; i < arrayAtomicBlock.Length; i++){
 			string loadMe = "Prefabs/block" + (i+2);
 			arrayAtomicBlock[i] = (GameObject) Resources.Load ( loadMe );
@@ -37,6 +40,7 @@ public class SpawnBlocks : MonoBehaviour {
 		spawnPosX = 0;
 		spawnPosY = 0;
 
+		aud = GameObject.Find("GameObject").GetComponent<AudioSource>();
 		//DebugGrid();
 	}
 
@@ -86,15 +90,19 @@ public class SpawnBlocks : MonoBehaviour {
 		//scroll up
 		if (Input.GetAxis("Mouse ScrollWheel") > 0){
 			//move ccw
-			Debug.Log ("+");
+			//Debug.Log ("+");
 			PushBlockSideways(true);
 		}
 
 		//scroll down
 		else if (Input.GetAxis("Mouse ScrollWheel") < 0){
 			//move cw
-			Debug.Log ("-");
+			//Debug.Log ("-");
 			PushBlockSideways(false);
+		}
+
+		if (!audio.isPlaying && audio.clip.isReadyToPlay){
+			audio.Play();
 		}
 
 	}
@@ -109,6 +117,7 @@ public class SpawnBlocks : MonoBehaviour {
 			Vector3 blockPos = CalcBlockRenderPos();
 			Quaternion blockRot = Quaternion.identity * Quaternion.Euler(0f,0f, 22.5f * movingBlockPosX);
 			movingBlock = (GameObject) Instantiate ( arrayAtomicBlock[movingBlockPosY], blockPos, blockRot );
+			gridActiveBlocksGO[spawnPosY+3, spawnPosX] = movingBlock;
 			movingBlockExists = true;
 			return true;
 		}
@@ -132,6 +141,10 @@ public class SpawnBlocks : MonoBehaviour {
 
 			//check if room
 			roomToSpawnExists = false;
+			ScoreIncrease(10);
+			if ( OuterRingFull() ){
+				//DeleteOuterRing();
+			}
 
 			Spawn ();
 		}
@@ -141,12 +154,13 @@ public class SpawnBlocks : MonoBehaviour {
 			gridActiveBlocks[movingBlockPosY+3,movingBlockPosX] = 0;
 			movingBlockPosY++;
 			Destroy(movingBlock);
+			//Destroy(gridActiveBlocksGO[movingBlockPosY+3,movingBlockPosX]);
 			Vector3 blockPos = CalcBlockRenderPos();
 			Quaternion blockRot = Quaternion.identity * Quaternion.Euler(0f,0f, 22.5f * movingBlockPosX);
 			movingBlock = (GameObject) Instantiate ( arrayAtomicBlock[movingBlockPosY], blockPos, blockRot );
 			gridActiveBlocks[movingBlockPosY+3,movingBlockPosX] = 1;
+			gridActiveBlocksGO[movingBlockPosY+3,movingBlockPosX] = movingBlock;
 			//DebugGrid();
-
 
 		}
 	}
@@ -176,12 +190,14 @@ public class SpawnBlocks : MonoBehaviour {
 		if (!logicCollision){
 			gridActiveBlocks[movingBlockPosY+3,movingBlockPosX] = 0;
 			Destroy(movingBlock);
+			//Destroy(gridActiveBlocksGO[movingBlockPosY+3,movingBlockPosX]);
 			movingBlockPosX = clockX;
 			Vector3 blockPos = CalcBlockRenderPos();
 			Quaternion blockRot = Quaternion.identity * Quaternion.Euler(0f,0f, 22.5f * movingBlockPosX);
 			movingBlock = (GameObject) Instantiate ( arrayAtomicBlock[movingBlockPosY], blockPos, blockRot );
 			gridActiveBlocks[movingBlockPosY+3,movingBlockPosX] = 1;
-			//DebugGrid();
+			gridActiveBlocksGO[movingBlockPosY+3,movingBlockPosX] = movingBlock;
+			DebugGrid();
 			
 			
 		}
@@ -192,7 +208,6 @@ public class SpawnBlocks : MonoBehaviour {
 		float d = dist_incr * (movingBlockPosY+1);
 		float angle_offset = 11.125f;
 		float a = angle_offset + (22.5f * movingBlockPosX );
-		Debug.Log ( a );
 		float x = d * Mathf.Sin( a * Mathf.Deg2Rad );
 		float y = d * Mathf.Cos( a * Mathf.Deg2Rad );
 		float z = 0.1f;
@@ -219,4 +234,52 @@ public class SpawnBlocks : MonoBehaviour {
 	{
 		return a - b * Mathf.Floor(a / b);
 	}
+
+	bool OuterRingFull(){
+		for (int i=gridActiveBlocks.GetUpperBound(0); i >= 0; i--){
+			for (int j=0; j <= gridActiveBlocks.GetUpperBound(1); j++){
+				bool hasContent = gridActiveBlocks[i,j] == 0;
+				if (hasContent) return false;
+			}
+			DeleteOuterRing();
+			return true;
+		}
+		return false; //compiler doesn't believe will return
+	}
+
+	void DeleteOuterRing(){
+		int i=maxBlockPosY;
+		for (int j=0; j <= gridActiveBlocks.GetUpperBound(1); j++){
+			Debug.Log ( "DESTROYING NOW: " ) ; 
+			DebugGrid();
+			Destroy( gridActiveBlocksGO[i,j]); 
+		}
+		aud.Play();
+		blockAdvanceTime = 4f;
+	}
+
+	void ScoreIncrease(int _score){
+		score += _score;
+	}
+
+	void OnGUI(){
+
+		float margin = Screen.width/30;
+		float fontSize = Screen.height/30;
+		Vector2 HUDsize = new Vector2 ( Screen.width/5, Screen.height - margin*2 );
+		Vector2 HUDpos = new Vector2 ( Screen.width - margin - HUDsize.x, margin );
+
+		Rect rct = new Rect(HUDpos.x, HUDpos.y, HUDsize.x, HUDsize.y);
+
+		GUI.Box ( rct, "" );
+		GUI.BeginGroup( rct );
+		GUI.Box ( new Rect ( margin/2, margin/2, rct.width-margin, 50 ), "SCORE: \n" + score );
+		GUI.EndGroup();
+
+
+		//if (gameover){
+		//	GUI.Box ( new Rect(margin, margin, Screen.width, Screen.height), 
+		//}
+	}
+
 }
