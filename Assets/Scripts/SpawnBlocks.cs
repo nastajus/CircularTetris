@@ -3,7 +3,7 @@ using System.Collections;
 
 public class SpawnBlocks : MonoBehaviour {
 	private float timer;
-	public static float blockAdvanceTime = 2f;
+	public static float blockAdvanceTime = .2f;
 	private GameObject gridGO;
 	public static int[,] gridActiveBlocks = new int[13,16];
 	private bool movingBlockExists = false;
@@ -140,9 +140,10 @@ public class SpawnBlocks : MonoBehaviour {
 		if (movingBlockExists && movingBlockPosY < maxBlockPosY && !logicCollision){
 			gridActiveBlocks[movingBlockPosY+3,movingBlockPosX] = 0;
 			movingBlockPosY++;
-			Vector3 blockPos = CalcBlockRenderPos();
 			Destroy(movingBlock);
-			movingBlock = (GameObject) Instantiate ( arrayAtomicBlock[movingBlockPosY], blockPos, Quaternion.identity );
+			Vector3 blockPos = CalcBlockRenderPos();
+			Quaternion blockRot = Quaternion.identity * Quaternion.Euler(0f,0f, 22.5f * movingBlockPosX);
+			movingBlock = (GameObject) Instantiate ( arrayAtomicBlock[movingBlockPosY], blockPos, blockRot );
 			gridActiveBlocks[movingBlockPosY+3,movingBlockPosX] = 1;
 			//DebugGrid();
 
