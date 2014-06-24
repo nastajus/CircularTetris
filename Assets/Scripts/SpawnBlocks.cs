@@ -3,7 +3,7 @@ using System.Collections;
 
 public class SpawnBlocks : MonoBehaviour {
 	private float timer;
-	public static float blockAdvanceTime = 2f;
+	public static float blockAdvanceTime = .2f;
 	private GameObject gridGO;
 	public static int[,] gridActiveBlocks = new int[13,16];
 	private bool movingBlockExists = false;
@@ -86,7 +86,7 @@ public class SpawnBlocks : MonoBehaviour {
 	void Spawn(){
 		movingBlockHeight = 0;
 		movingBlockWidth = 0;
-		gridActiveBlocks[movingBlockHeight+4, movingBlockWidth] = 1;
+		gridActiveBlocks[movingBlockHeight+3, movingBlockWidth] = 1;
 		movingBlock = (GameObject) Instantiate ( arrayAtomicBlock[movingBlockHeight], new Vector3(0.8f, -2.1f, 0.1f), Quaternion.identity );
 		movingBlockExists = true;
 	}
@@ -94,13 +94,17 @@ public class SpawnBlocks : MonoBehaviour {
 	void PushBlockOut(){
 
 		//check if logic collision happens
-		bool condA = movingBlockHeight >= maxBlockPos; 
+		bool condA = movingBlockHeight + 1 > maxBlockPos;  //WILL BE OUT OF BOUNDS
 
-		if ( condA && gridActiveBlocks[movingBlockHeight+1+3,movingBlockWidth] == 1 ){ // condA is only used for it's short circuiting property
-			logicCollision = true;
+		//contrapositive applied here 
+		if ( !condA && !(gridActiveBlocks[movingBlockHeight+1+3,movingBlockWidth] == 1 )) {  // condA is only used for it's short circuiting property
+			logicCollision = false;
 		}
 		else {
-			logicCollision = false;
+			logicCollision = true;
+			//lock block
+			//??? delay ???
+			Spawn ();
 		}
 
 		if (movingBlockExists && movingBlockHeight < maxBlockPos && !logicCollision){
@@ -114,11 +118,11 @@ public class SpawnBlocks : MonoBehaviour {
 
 
 		}
-		else if ( movingBlockHeight >= maxBlockPos ){
-			//lock block
-			//??? delay ???
-			Spawn ();
-		}
+//		else if ( movingBlockHeight >= maxBlockPos ){
+//			//lock block
+//			//??? delay ???
+//			Spawn ();
+//		}
 	}
 
 	Vector3 CalcBlockPos(){
