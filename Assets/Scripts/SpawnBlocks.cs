@@ -306,7 +306,7 @@ public class SpawnBlocks : MonoBehaviour {
 			line += "\n";
 			lines += line;
 		}
-		Debug.Log ( lines );
+		//Debug.Log ( lines );
 	}
 
 	//C# Modulus Is WRONG!
@@ -365,8 +365,13 @@ public class SpawnBlocks : MonoBehaviour {
 		GUI.Box ( rctC, "LEVEL: \n" + blockAdvanceTimeLevel.ToString("X") );
 		Rect rctD = new Rect ( margin/2, margin/2 + rctC.yMax, rctGroup.width-margin, rctGroup.height - rctC.yMax - margin );
 		//GUI.DrawTexture();
-		GUI.Box ( rctD, "NEXT PIECE: \n" );
-
+		//Resources.Load<Texture> ("Prefabs/block6")
+		//Texture2D image = (Texture2D)Resources.Load("image1");
+		Sprite sampleBlock = Resources.Load<Sprite> ("Sprites/block6");
+		GUI.Box ( rctD, "NEXT PIECE: \n" ); 
+		Rect rctE = new Rect ( margin, margin + rctC.yMax + margin/2, rctD.width-margin, rctD.height-margin );//rctGroup.width-margin, rctGroup.height - rctD.yMax - margin
+		//GUI.Box ( rctE, "DERP" ); //sampleBlock.texture
+		GUI.DrawTexture( rctE, sampleBlock.texture, ScaleMode.ScaleToFit);
 		GUI.EndGroup();
 
 
