@@ -12,8 +12,8 @@ public class SpawnBlocks : MonoBehaviour {
 	private int blockAdvanceTimeLevel;
 
 	//private GameObject gridGO;
-	private int[,] gridActiveBlocks;
-	private GameObject[,] gridActiveBlocksGO;
+	private int[][] gridActiveBlocks;
+	private GameObject[][] gridActiveBlocksGO;
 	private GameObject[] arrayAtomicBlock;
 	private bool movingBlockExists;
 	private GameObject movingBlock;
@@ -70,8 +70,12 @@ public class SpawnBlocks : MonoBehaviour {
 		blockAdvanceTime = .1f;
 		blocksLandedCounter = 0;
 		blockAdvanceTimeLevel = 1;
-		gridActiveBlocks = new int[13,16];
-		gridActiveBlocksGO = new GameObject[13,16];
+		gridActiveBlocks = new int[13][];
+		gridActiveBlocksGO = new GameObject[13][];
+		for (int i=0; i<gridActiveBlocks.Length; i++){
+			gridActiveBlocks[i] = new int[16];
+			gridActiveBlocksGO[i] = new GameObject[16];
+		}
 		arrayAtomicBlock = new GameObject[10];
 		movingBlockExists = false;
 		logicCollision = false;
@@ -84,9 +88,9 @@ public class SpawnBlocks : MonoBehaviour {
 			string loadMe = "Prefabs/block" + (i+2);
 			arrayAtomicBlock[i] = (GameObject) Resources.Load ( loadMe );
 		}
-		for (int i=0; i <= gridActiveBlocks.GetUpperBound(0); i++){
-			for (int j=0; j <= gridActiveBlocks.GetUpperBound(1); j++){
-				gridActiveBlocks[i,j] = 0;
+		for (int i=0; i < gridActiveBlocks.Length; i++){
+			for (int j=0; j < gridActiveBlocks[0].Length; j++){
+				gridActiveBlocks[i][j] = 0;
 			}
 		}
 
@@ -167,15 +171,15 @@ public class SpawnBlocks : MonoBehaviour {
 
 	bool Spawn(){
 
-		if (gridActiveBlocks[spawnPosY+3, spawnPosX] == 0 && !gameover){
+		if (gridActiveBlocks[spawnPosY+3][spawnPosX] == 0 && !gameover){
 			movingBlockPosY = 0;
 			movingBlockPosX = 0;
-			gridActiveBlocks[spawnPosY+3, spawnPosX] = 1;
+			gridActiveBlocks[spawnPosY+3][spawnPosX] = 1;
 			Vector3 blockPos = CalcBlockRenderPos();
 			Quaternion blockRot = Quaternion.identity * Quaternion.Euler(0f,0f, 22.5f * movingBlockPosX);
 			movingBlock = (GameObject) Instantiate ( arrayAtomicBlock[movingBlockPosY], blockPos, blockRot );
 			movingBlock.transform.parent = blocks.transform;
-			gridActiveBlocksGO[spawnPosY+3, spawnPosX] = movingBlock;
+			gridActiveBlocksGO[spawnPosY+3][spawnPosX] = movingBlock;
 			//Debug.Log ( gridActiveBlocksGO[spawnPosY+3+1, spawnPosX].name );
 			movingBlockExists = true;
 			return true;
@@ -190,7 +194,7 @@ public class SpawnBlocks : MonoBehaviour {
 		bool condA = movingBlockPosY + 1 > maxBlockPosY;  //WILL BE OUT OF BOUNDS
 
 		//contrapositive applied here 
-		if ( !condA && !(gridActiveBlocks[movingBlockPosY+1+3,movingBlockPosX] == 1 )) {  // condA is only used for it's short circuiting property
+		if ( !condA && !(gridActiveBlocks[movingBlockPosY+1+3][movingBlockPosX] == 1 )) {  // condA is only used for it's short circuiting property
 			logicCollision = false;
 		}
 
@@ -199,6 +203,9 @@ public class SpawnBlocks : MonoBehaviour {
 
 			Color32 c = new Color32(1,128,255, 255);
 			movingBlock.renderer.material.color = c;
+
+			//DebugGridGO();
+			//Destroy( gridActiveBlocksGO[movingBlockPosY+1+3][movingBlockPosX] );
 			//lock block
 			//??? delay ???
 
@@ -235,16 +242,16 @@ public class SpawnBlocks : MonoBehaviour {
 
 		//performs so called block movement, if allowed
 		if (movingBlockExists && movingBlockPosY < maxBlockPosY && !logicCollision){
-			gridActiveBlocks[movingBlockPosY+3,movingBlockPosX] = 0;
+			gridActiveBlocks[movingBlockPosY+3][movingBlockPosX] = 0;
 			//Destroy(movingBlock);
-			Destroy(gridActiveBlocksGO[movingBlockPosY+3,movingBlockPosX]);
+			Destroy(gridActiveBlocksGO[movingBlockPosY+3][movingBlockPosX]);
 			movingBlockPosY++;
 			Vector3 blockPos = CalcBlockRenderPos();
 			Quaternion blockRot = Quaternion.identity * Quaternion.Euler(0f,0f, 22.5f * movingBlockPosX);
 			movingBlock = (GameObject) Instantiate ( arrayAtomicBlock[movingBlockPosY], blockPos, blockRot );
 			movingBlock.transform.parent = blocks.transform;
-			gridActiveBlocks[movingBlockPosY+3,movingBlockPosX] = 1;
-			gridActiveBlocksGO[movingBlockPosY+3,movingBlockPosX] = movingBlock;
+			gridActiveBlocks[movingBlockPosY+3][movingBlockPosX] = 1;
+			gridActiveBlocksGO[movingBlockPosY+3][movingBlockPosX] = movingBlock;
 			//DebugGrid();
 
 		}
@@ -262,7 +269,7 @@ public class SpawnBlocks : MonoBehaviour {
 		 //WILL BE OUT OF BOUNDS
 		
 		//contrapositive applied here 
-		if ( !(gridActiveBlocks[movingBlockPosY+3,clockX] == 1 )) {  // condA is only used for it's short circuiting property
+		if ( !(gridActiveBlocks[movingBlockPosY+3][clockX] == 1 )) {  // condA is only used for it's short circuiting property
 			logicCollision = false;
 		}
 		else {
@@ -273,16 +280,16 @@ public class SpawnBlocks : MonoBehaviour {
 
 		//performs so called block movement, if allowed
 		if (!logicCollision && !gameover){
-			gridActiveBlocks[movingBlockPosY+3,movingBlockPosX] = 0;
+			gridActiveBlocks[movingBlockPosY+3][movingBlockPosX] = 0;
 			//Destroy(movingBlock);
-			Destroy(gridActiveBlocksGO[movingBlockPosY+3,movingBlockPosX]);
+			Destroy(gridActiveBlocksGO[movingBlockPosY+3][movingBlockPosX]);
 			movingBlockPosX = clockX;
 			Vector3 blockPos = CalcBlockRenderPos();
 			Quaternion blockRot = Quaternion.identity * Quaternion.Euler(0f,0f, 22.5f * movingBlockPosX);
 			movingBlock = (GameObject) Instantiate ( arrayAtomicBlock[movingBlockPosY], blockPos, blockRot );
 			movingBlock.transform.parent = blocks.transform;
-			gridActiveBlocks[movingBlockPosY+3,movingBlockPosX] = 1;
-			gridActiveBlocksGO[movingBlockPosY+3,movingBlockPosX] = movingBlock;
+			gridActiveBlocks[movingBlockPosY+3][movingBlockPosX] = 1;
+			gridActiveBlocksGO[movingBlockPosY+3][movingBlockPosX] = movingBlock;
 			//DebugGrid();
 			
 			
@@ -305,10 +312,10 @@ public class SpawnBlocks : MonoBehaviour {
 
 		if (!go){
 			string lines = "";
-			for (int i=0; i <= gridActiveBlocks.GetUpperBound(0); i++){
+			for (int i=0; i < gridActiveBlocks.Length; i++){
 				string line = "";
-				for (int j=0; j <= gridActiveBlocks.GetUpperBound(1); j++){
-					line += gridActiveBlocks[i,j] + " " ;
+				for (int j=0; j < gridActiveBlocks[0].Length; j++){
+					line += gridActiveBlocks[i][j] + " " ;
 				}
 				line += "\n";
 				lines += line;
@@ -317,9 +324,9 @@ public class SpawnBlocks : MonoBehaviour {
 		}
 		else {
 			string lines = "";
-			for (int i=0; i <= gridActiveBlocksGO.GetUpperBound(0); i++){
+			for (int i=0; i <= gridActiveBlocksGO.Length; i++){
 				string line = "";
-				for (int j=0; j <= gridActiveBlocksGO.GetUpperBound(1); j++){
+				for (int j=0; j <= gridActiveBlocksGO[0].Length; j++){
 					line += "(null) ";
 				}
 				line += "\n";
@@ -330,6 +337,22 @@ public class SpawnBlocks : MonoBehaviour {
 		}
 	}
 
+	void DebugGridGO(){
+		
+		string lines = "";
+		for (int i=0; i <= gridActiveBlocksGO.Length; i++){
+			string line = "i";
+			for (int j=0; j <= gridActiveBlocksGO[0].Length; j++){
+				line+="j";
+				if ( gridActiveBlocksGO[i][j] != null )
+					line += gridActiveBlocksGO[i][j] + " @ (" +i+ ","+j+")" ;
+			}
+			line += "\n";
+			lines += line;
+		}
+		Debug.Log ( lines );
+	}
+
 	//C# Modulus Is WRONG!
 	//http://answers.unity3d.com/questions/380035/c-modulus-is-wrong-1.html
 	float nfmod(float a, float b)
@@ -338,18 +361,18 @@ public class SpawnBlocks : MonoBehaviour {
 	}
 
 	bool OuterRingFull(){
-		for (int i=gridActiveBlocks.GetUpperBound(0); i >= 0; i--){
-			for (int j=0; j <= gridActiveBlocks.GetUpperBound(1); j++){
-				bool hasContent = gridActiveBlocks[i,j] == 0;
+		for (int i=gridActiveBlocks.Length - 1; i >= 0; i--){
+			for (int j=0; j < gridActiveBlocks[0].Length; j++){
+				bool hasContent = gridActiveBlocks[i][j] == 0;
 				if (hasContent) return false;
 			}
-			DeleteOuterRing();
+			DeleteRing(gridActiveBlocksGO[i]);
 			return true;
 		}
 		return false; //compiler doesn't believe will return
 	}
 
-	bool DeleteOuterRing(){
+	bool DeleteRing(GameObject[] ring){
 		bool returnState = true; 
 		int i=maxBlockPosY+1;
 
@@ -357,24 +380,28 @@ public class SpawnBlocks : MonoBehaviour {
 		DebugGrid();
 		DebugGrid(true);
 
-		for (int j=0; j <= gridActiveBlocks.GetUpperBound(1); j++){
-			try {
-				Debug.Log ( gridActiveBlocksGO[j,i].name );
-				Debug.Log ( "DESTROYING NOW where j is: " + j + " and i: " + i ) ; 
-				//Destroy( gridActiveBlocksGO[i,j]); 
-			}
-			catch (UnityException ue) {
-				Debug.Log ( "EXCEPTION!: gridActiveBlocksGO[" + j + ", " +i + "]" );
-				returnState = false;
-			}
+		foreach ( GameObject go in ring ){
+			Debug.Log ( go.name );
+			Destroy( go ); 
 		}
+
+//		for (int j=0; j <= gridActiveBlocks[0].Length; j++){
+//			try {
+//				Debug.Log ( gridActiveBlocksGO[j,i].name );
+//				Debug.Log ( "DESTROYING NOW where j is: " + j + " and i: " + i ) ; 
+//				//Destroy( gridActiveBlocksGO[i][j]); 
+//			}
+//			catch (UnityException ue) {
+//				Debug.Log ( "EXCEPTION!: gridActiveBlocksGO[" + j + ", " +i + "]" );
+//				returnState = false;
+//			}
+//		}
 
 		Debug.Log ( "AFTER" );
 		DebugGrid();
 		DebugGrid(true);
 
 		//aud.Play();
-		blockAdvanceTime = 4f;
 		return returnState;
 	}
 
