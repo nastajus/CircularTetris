@@ -67,7 +67,7 @@ public class SpawnBlocks : MonoBehaviour {
 		spawnPosY = 0;
 		blocks = new GameObject("blocks");
 		score = 0;
-		blockAdvanceTime = .6f;
+		blockAdvanceTime = .1f;
 		blocksLandedCounter = 0;
 		blockAdvanceTimeLevel = 1;
 		gridActiveBlocks = new int[13,16];
@@ -166,17 +166,17 @@ public class SpawnBlocks : MonoBehaviour {
 	}
 
 	bool Spawn(){
-		movingBlockPosY = 0;
-		movingBlockPosX = 0;
 
-		if (gridActiveBlocks[spawnPosY+3, spawnPosX] == 0){
-
+		if (gridActiveBlocks[spawnPosY+3, spawnPosX] == 0 && !gameover){
+			movingBlockPosY = 0;
+			movingBlockPosX = 0;
 			gridActiveBlocks[spawnPosY+3, spawnPosX] = 1;
 			Vector3 blockPos = CalcBlockRenderPos();
 			Quaternion blockRot = Quaternion.identity * Quaternion.Euler(0f,0f, 22.5f * movingBlockPosX);
 			movingBlock = (GameObject) Instantiate ( arrayAtomicBlock[movingBlockPosY], blockPos, blockRot );
 			movingBlock.transform.parent = blocks.transform;
 			gridActiveBlocksGO[spawnPosY+3, spawnPosX] = movingBlock;
+			//Debug.Log ( gridActiveBlocksGO[spawnPosY+3+1, spawnPosX].name );
 			movingBlockExists = true;
 			return true;
 		}
@@ -224,6 +224,11 @@ public class SpawnBlocks : MonoBehaviour {
 					blockAdvanceTimeLevel++;
 				}
 
+//				if ( gridActiveBlocksGO[spawnPosY+3+1, spawnPosX] == null ){ 
+//					Debug.Log ("WOO"); }
+//				else 
+//					Debug.Log ("BOO");
+
 				Spawn ();
 			}
 		}
@@ -231,9 +236,9 @@ public class SpawnBlocks : MonoBehaviour {
 		//performs so called block movement, if allowed
 		if (movingBlockExists && movingBlockPosY < maxBlockPosY && !logicCollision){
 			gridActiveBlocks[movingBlockPosY+3,movingBlockPosX] = 0;
+			//Destroy(movingBlock);
+			Destroy(gridActiveBlocksGO[movingBlockPosY+3,movingBlockPosX]);
 			movingBlockPosY++;
-			Destroy(movingBlock);
-			//Destroy(gridActiveBlocksGO[movingBlockPosY+3,movingBlockPosX]);
 			Vector3 blockPos = CalcBlockRenderPos();
 			Quaternion blockRot = Quaternion.identity * Quaternion.Euler(0f,0f, 22.5f * movingBlockPosX);
 			movingBlock = (GameObject) Instantiate ( arrayAtomicBlock[movingBlockPosY], blockPos, blockRot );
@@ -267,10 +272,10 @@ public class SpawnBlocks : MonoBehaviour {
 
 
 		//performs so called block movement, if allowed
-		if (!logicCollision){
+		if (!logicCollision && !gameover){
 			gridActiveBlocks[movingBlockPosY+3,movingBlockPosX] = 0;
-			Destroy(movingBlock);
-			//Destroy(gridActiveBlocksGO[movingBlockPosY+3,movingBlockPosX]);
+			//Destroy(movingBlock);
+			Destroy(gridActiveBlocksGO[movingBlockPosY+3,movingBlockPosX]);
 			movingBlockPosX = clockX;
 			Vector3 blockPos = CalcBlockRenderPos();
 			Quaternion blockRot = Quaternion.identity * Quaternion.Euler(0f,0f, 22.5f * movingBlockPosX);
@@ -278,7 +283,7 @@ public class SpawnBlocks : MonoBehaviour {
 			movingBlock.transform.parent = blocks.transform;
 			gridActiveBlocks[movingBlockPosY+3,movingBlockPosX] = 1;
 			gridActiveBlocksGO[movingBlockPosY+3,movingBlockPosX] = movingBlock;
-			DebugGrid();
+			//DebugGrid();
 			
 			
 		}
@@ -296,17 +301,33 @@ public class SpawnBlocks : MonoBehaviour {
 		return new Vector3 (x,-y,z);
 	}
 
-	void DebugGrid(){
-		string lines = "";
-		for (int i=0; i <= gridActiveBlocks.GetUpperBound(0); i++){
-			string line = "";
-			for (int j=0; j <= gridActiveBlocks.GetUpperBound(1); j++){
-				line += gridActiveBlocks[i,j] + " " ;
+	void DebugGrid(bool go = false){
+
+		if (!go){
+			string lines = "";
+			for (int i=0; i <= gridActiveBlocks.GetUpperBound(0); i++){
+				string line = "";
+				for (int j=0; j <= gridActiveBlocks.GetUpperBound(1); j++){
+					line += gridActiveBlocks[i,j] + " " ;
+				}
+				line += "\n";
+				lines += line;
 			}
-			line += "\n";
-			lines += line;
+			Debug.Log ( lines );
 		}
-		//Debug.Log ( lines );
+		else {
+			string lines = "";
+			for (int i=0; i <= gridActiveBlocksGO.GetUpperBound(0); i++){
+				string line = "";
+				for (int j=0; j <= gridActiveBlocksGO.GetUpperBound(1); j++){
+					line += "(null) ";
+				}
+				line += "\n";
+				lines += line;
+			}
+			Debug.Log ( lines );
+
+		}
 	}
 
 	//C# Modulus Is WRONG!
@@ -328,15 +349,33 @@ public class SpawnBlocks : MonoBehaviour {
 		return false; //compiler doesn't believe will return
 	}
 
-	void DeleteOuterRing(){
-		int i=maxBlockPosY;
+	bool DeleteOuterRing(){
+		bool returnState = true; 
+		int i=maxBlockPosY+1;
+
+		Debug.Log ( "BEFORE" );
+		DebugGrid();
+		DebugGrid(true);
+
 		for (int j=0; j <= gridActiveBlocks.GetUpperBound(1); j++){
-			Debug.Log ( "DESTROYING NOW: " ) ; 
-			DebugGrid();
-			Destroy( gridActiveBlocksGO[i,j]); 
+			try {
+				Debug.Log ( gridActiveBlocksGO[j,i].name );
+				Debug.Log ( "DESTROYING NOW where j is: " + j + " and i: " + i ) ; 
+				//Destroy( gridActiveBlocksGO[i,j]); 
+			}
+			catch (UnityException ue) {
+				Debug.Log ( "EXCEPTION!: gridActiveBlocksGO[" + j + ", " +i + "]" );
+				returnState = false;
+			}
 		}
-		aud.Play();
+
+		Debug.Log ( "AFTER" );
+		DebugGrid();
+		DebugGrid(true);
+
+		//aud.Play();
 		blockAdvanceTime = 4f;
+		return returnState;
 	}
 
 	void ScoreIncrease(int _score){
