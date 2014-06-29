@@ -221,8 +221,10 @@ public class SpawnBlocks : MonoBehaviour {
 			else {
 				int amtDeleted = OuterRingsDeleted();
 				if ( amtDeleted > 0 ){
-					//DeleteOuterRing();
-					ScoreIncrease( mapActionPoints[Score.RingsComplete1] );
+					ScoreIncrease( mapActionPoints[ (Score)amtDeleted ] );
+					for (int i = 0; i < amtDeleted; i++){
+						PushRingOut(amtDeleted);
+					}
 				}
 				else {
 					ScoreIncrease( mapActionPoints[Score.BlockSimplyLands] );
@@ -300,6 +302,10 @@ public class SpawnBlocks : MonoBehaviour {
 		}
 	}
 
+	void PushRingOut(int pushDist){
+		
+	}
+
 	Vector3 CalcBlockRenderPos(){
 		float dist_incr = 20.5f / 10.5f;
 		float d = dist_incr * (movingBlockPosY+1);
@@ -367,10 +373,11 @@ public class SpawnBlocks : MonoBehaviour {
 	//todo improve outer loop logic, is stupid
 	int OuterRingsDeleted(){
 		int amtDeleted = 0;
+		bool ringCompletelyFull = true;
 		for (int i=gridActiveBlocks.Length - 1; i >= 0; i--){
 			for (int j=0; j < gridActiveBlocks[0].Length; j++){
 				bool hasContent = gridActiveBlocks[i][j] == 0;
-				if (hasContent) return false;
+				if (hasContent) return amtDeleted;
 			}
 			if ( DeleteRing(gridActiveBlocksGO[i]) ) amtDeleted++;
 			DeleteRing(gridActiveBlocks[i]);
