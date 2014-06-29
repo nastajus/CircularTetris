@@ -26,7 +26,8 @@ public class SpawnBlocks : MonoBehaviour {
 	private int spawnPosX;
 	private int spawnPosY;
 	private int score;
-	private AudioSource aud;
+	private AudioSource audRingClear;
+	private AudioSource audBlockLand;
 	private enum ColorNames { red, orange, yellow, green, blue, blue_dark, purple };
 	private Dictionary<ColorNames, Color32> OurColors = new Dictionary<ColorNames, Color32>(){
 		{ColorNames.red , new Color32(238,57,57, 255)},
@@ -97,7 +98,9 @@ public class SpawnBlocks : MonoBehaviour {
 
 		//DebugGrid();
 
-		//aud = GameObject.Find("GameObject").GetComponent<AudioSource>();
+
+		audBlockLand = GameObject.Find("AudioEffectBlockLand").GetComponent<AudioSource>();
+		audRingClear = GameObject.Find("AudioEffectRingClear").GetComponent<AudioSource>();
 
 
 	}
@@ -203,6 +206,7 @@ public class SpawnBlocks : MonoBehaviour {
 
 			Color32 c = new Color32(1,128,255, 255);
 			movingBlock.renderer.material.color = c;
+			audBlockLand.Play();
 
 			//DebugGridGO();
 			//Destroy( gridActiveBlocksGO[movingBlockPosY+1+3][movingBlockPosX] );
@@ -215,8 +219,8 @@ public class SpawnBlocks : MonoBehaviour {
 				gameover = true;
 			}
 			else {
-
-				if ( OuterRingFull() ){
+				int amtDeleted = OuterRingsDeleted();
+				if ( amtDeleted > 0 ){
 					//DeleteOuterRing();
 					ScoreIncrease( mapActionPoints[Score.RingsComplete1] );
 				}
@@ -360,50 +364,66 @@ public class SpawnBlocks : MonoBehaviour {
 		return a - b * Mathf.Floor(a / b);
 	}
 
-	bool OuterRingFull(){
+	//todo improve outer loop logic, is stupid
+	int OuterRingsDeleted(){
+		int amtDeleted = 0;
 		for (int i=gridActiveBlocks.Length - 1; i >= 0; i--){
 			for (int j=0; j < gridActiveBlocks[0].Length; j++){
 				bool hasContent = gridActiveBlocks[i][j] == 0;
 				if (hasContent) return false;
 			}
-			DeleteRing(gridActiveBlocksGO[i]);
-			return true;
+			if ( DeleteRing(gridActiveBlocksGO[i]) ) amtDeleted++;
+			DeleteRing(gridActiveBlocks[i]);
 		}
-		return false; //compiler doesn't believe will return
+		return amtDeleted;
 	}
 
 	bool DeleteRing(GameObject[] ring){
 		bool returnState = true; 
 		int i=maxBlockPosY+1;
 
-		Debug.Log ( "BEFORE" );
-		DebugGrid();
-		DebugGrid(true);
-
 		foreach ( GameObject go in ring ){
-			Debug.Log ( go.name );
 			Destroy( go ); 
 		}
 
-//		for (int j=0; j <= gridActiveBlocks[0].Length; j++){
-//			try {
-//				Debug.Log ( gridActiveBlocksGO[j,i].name );
-//				Debug.Log ( "DESTROYING NOW where j is: " + j + " and i: " + i ) ; 
-//				//Destroy( gridActiveBlocksGO[i][j]); 
-//			}
-//			catch (UnityException ue) {
-//				Debug.Log ( "EXCEPTION!: gridActiveBlocksGO[" + j + ", " +i + "]" );
-//				returnState = false;
-//			}
-//		}
-
-		Debug.Log ( "AFTER" );
-		DebugGrid();
-		DebugGrid(true);
-
-		//aud.Play();
+		audRingClear.Play();
 		return returnState;
 	}
+
+	bool DeleteRing(int[] ring){
+		bool returnState = true; 
+		int i=maxBlockPosY+1;
+
+		for (int ii=0; ii< ring.Length; ii++){
+			
+			ring[ii] = 0;
+			
+		}
+
+		return returnState;
+	}
+
+
+//	bool DeleteRing(int[] ring){
+//		bool returnState = true; 
+//		int i=maxBlockPosY+1;
+//		
+//		Debug.Log ( "BEFORE" );
+//		DebugGrid();
+//		DebugGrid(true);
+//		
+//		foreach ( int go in ring ){
+//			Debug.Log ( go );
+//			Destroy( go ); 
+//		}
+//			
+//		Debug.Log ( "AFTER" );
+//		DebugGrid();
+//		DebugGrid(true);
+//		
+//		//aud.Play();
+//		return returnState;
+//	}
 
 	void ScoreIncrease(int _score){
 		score += _score;
