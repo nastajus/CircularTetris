@@ -68,7 +68,7 @@ public class SpawnBlocks : MonoBehaviour {
 		spawnPosY = 0;
 		blocks = new GameObject("blocks");
 		score = 0;
-		blockAdvanceTime = .1f;
+		blockAdvanceTime = .6f;
 		blocksLandedCounter = 0;
 		blockAdvanceTimeLevel = 1;
 		gridActiveBlocks = new int[13][];
@@ -175,20 +175,26 @@ public class SpawnBlocks : MonoBehaviour {
 	bool Spawn(){
 
 		if (gridActiveBlocks[spawnPosY+3][spawnPosX] == 0 && !gameover){
-			movingBlockPosY = 0;
-			movingBlockPosX = 0;
-			gridActiveBlocks[spawnPosY+3][spawnPosX] = 1;
-			Vector3 blockPos = CalcBlockRenderPos();
-			Quaternion blockRot = Quaternion.identity * Quaternion.Euler(0f,0f, 22.5f * movingBlockPosX);
-			movingBlock = (GameObject) Instantiate ( arrayAtomicBlock[movingBlockPosY], blockPos, blockRot );
-			movingBlock.transform.parent = blocks.transform;
-			gridActiveBlocksGO[spawnPosY+3][spawnPosX] = movingBlock;
+			movingBlockPosY = spawnPosY;
+			//Vector2 oldPos = new Vector2 ( movingBlockPosX, movingBlockPosY );
+			Vector2 newPos = new Vector2 ( spawnPosX, spawnPosY );
+			Push(newPos);
 			//Debug.Log ( gridActiveBlocksGO[spawnPosY+3+1, spawnPosX].name );
 			movingBlockExists = true;
 			return true;
 		}
 		else 
 			return false;
+	}
+
+	void Push( Vector2 newPos ){
+
+		Vector3 blockPos = CalcBlockRenderPos(newPos);
+		Quaternion blockRot = Quaternion.identity * Quaternion.Euler(0f,0f, 22.5f * newPos.x);
+		movingBlock = (GameObject) Instantiate ( arrayAtomicBlock[(int)newPos.y], blockPos, blockRot );
+		movingBlock.transform.parent = blocks.transform;
+		gridActiveBlocksGO[(int)newPos.y+3][(int)newPos.x] = movingBlock;
+		gridActiveBlocks[(int)newPos.y+3][(int)newPos.x] = 1;
 	}
 
 	void PushBlockOut(){
@@ -241,23 +247,23 @@ public class SpawnBlocks : MonoBehaviour {
 //					Debug.Log ("WOO"); }
 //				else 
 //					Debug.Log ("BOO");
-
-				Spawn ();
+				//TODO: add delay here of a tick
+				Spawn();
 			}
 		}
 
 		//performs so called block movement, if allowed
 		if (movingBlockExists && movingBlockPosY < maxBlockPosY && !logicCollision){
+
 			gridActiveBlocks[movingBlockPosY+3][movingBlockPosX] = 0;
 			//Destroy(movingBlock);
 			Destroy(gridActiveBlocksGO[movingBlockPosY+3][movingBlockPosX]);
-			movingBlockPosY++;
-			Vector3 blockPos = CalcBlockRenderPos();
-			Quaternion blockRot = Quaternion.identity * Quaternion.Euler(0f,0f, 22.5f * movingBlockPosX);
-			movingBlock = (GameObject) Instantiate ( arrayAtomicBlock[movingBlockPosY], blockPos, blockRot );
-			movingBlock.transform.parent = blocks.transform;
-			gridActiveBlocks[movingBlockPosY+3][movingBlockPosX] = 1;
-			gridActiveBlocksGO[movingBlockPosY+3][movingBlockPosX] = movingBlock;
+			//movingBlockPosY++;
+
+			Vector2 oldPos = new Vector2 ( movingBlockPosX, movingBlockPosY );
+			Vector2 newPos = new Vector2 ( movingBlockPosX, ++movingBlockPosY );
+			Push(newPos);
+
 			//DebugGrid();
 
 		}
@@ -270,6 +276,7 @@ public class SpawnBlocks : MonoBehaviour {
 		else modifier = -1; 
 
 		int clockX = (int) nfmod ( (float)(movingBlockPosX + modifier), (float)maxBlockPosX + 1);
+		spawnPosX = clockX;
 
 		//check if logic collision happens
 		 //WILL BE OUT OF BOUNDS
@@ -290,12 +297,10 @@ public class SpawnBlocks : MonoBehaviour {
 			//Destroy(movingBlock);
 			Destroy(gridActiveBlocksGO[movingBlockPosY+3][movingBlockPosX]);
 			movingBlockPosX = clockX;
-			Vector3 blockPos = CalcBlockRenderPos();
-			Quaternion blockRot = Quaternion.identity * Quaternion.Euler(0f,0f, 22.5f * movingBlockPosX);
-			movingBlock = (GameObject) Instantiate ( arrayAtomicBlock[movingBlockPosY], blockPos, blockRot );
-			movingBlock.transform.parent = blocks.transform;
-			gridActiveBlocks[movingBlockPosY+3][movingBlockPosX] = 1;
-			gridActiveBlocksGO[movingBlockPosY+3][movingBlockPosX] = movingBlock;
+
+			Vector2 oldPos = new Vector2 ( movingBlockPosX, movingBlockPosY );
+			Vector2 newPos = new Vector2 ( clockX, movingBlockPosY );
+			Push(newPos);
 			//DebugGrid();
 			
 			
@@ -306,11 +311,11 @@ public class SpawnBlocks : MonoBehaviour {
 		
 	}
 
-	Vector3 CalcBlockRenderPos(){
+	Vector3 CalcBlockRenderPos( Vector2 pos ){
 		float dist_incr = 20.5f / 10.5f;
-		float d = dist_incr * (movingBlockPosY+1);
+		float d = dist_incr * ((int)pos.y+1);
 		float angle_offset = 11.125f;
-		float a = angle_offset + (22.5f * movingBlockPosX );
+		float a = angle_offset + (22.5f * (int)pos.x );
 		float x = d * Mathf.Sin( a * Mathf.Deg2Rad );
 		float y = d * Mathf.Cos( a * Mathf.Deg2Rad );
 		float z = 0.1f;
