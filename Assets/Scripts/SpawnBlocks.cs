@@ -28,7 +28,7 @@ public class SpawnBlocks : MonoBehaviour {
 	private int score;
 	private AudioSource audRingClear;
 	private AudioSource audBlockLand;
-	private enum ColorNames { red, orange, yellow, green, blue, blue_dark, purple };
+	private enum ColorNames { red, orange, yellow, green, blue, blue_dark, purple, LANDED };
 	private Dictionary<ColorNames, Color32> OurColors = new Dictionary<ColorNames, Color32>(){
 		{ColorNames.red , new Color32(238,57,57, 255)},
 		{ColorNames.orange , new Color32(227,111,66, 255)},
@@ -37,6 +37,7 @@ public class SpawnBlocks : MonoBehaviour {
 		{ColorNames.blue , new Color32(69,197,231, 255)},
 		{ColorNames.blue_dark , new Color32(71,85,165, 255)},
 		{ColorNames.purple , new Color32(132,90,166, 255)},
+		{ColorNames.LANDED , new Color32(1,128,255, 255)}
 	};
 	private enum Tetronimo { I, O, T, J, L, S, Z };
 	private Dictionary<Tetronimo, ColorNames> mapTetronimoColors = new Dictionary<Tetronimo, ColorNames>(){
@@ -68,7 +69,7 @@ public class SpawnBlocks : MonoBehaviour {
 		spawnPosY = 0;
 		blocks = new GameObject("blocks");
 		score = 0;
-		blockAdvanceTime = .6f;
+		blockAdvanceTime = .1f;
 		blocksLandedCounter = 0;
 		blockAdvanceTimeLevel = 1;
 		gridActiveBlocks = new int[13][];
@@ -174,12 +175,12 @@ public class SpawnBlocks : MonoBehaviour {
 
 	bool Spawn(){
 
+		movingBlockPosX = 0;
+
 		if (gridActiveBlocks[spawnPosY+3][spawnPosX] == 0 && !gameover){
 			movingBlockPosY = spawnPosY;
-			//Vector2 oldPos = new Vector2 ( movingBlockPosX, movingBlockPosY );
 			Vector2 newPos = new Vector2 ( spawnPosX, spawnPosY );
 			Push(newPos);
-			//Debug.Log ( gridActiveBlocksGO[spawnPosY+3+1, spawnPosX].name );
 			movingBlockExists = true;
 			return true;
 		}
@@ -210,8 +211,7 @@ public class SpawnBlocks : MonoBehaviour {
 		else {
 			logicCollision = true;
 
-			Color32 c = new Color32(1,128,255, 255);
-			movingBlock.renderer.material.color = c;
+			movingBlock.renderer.material.color = OurColors[ColorNames.LANDED];
 			audBlockLand.Play();
 
 			//DebugGridGO();
@@ -228,9 +228,7 @@ public class SpawnBlocks : MonoBehaviour {
 				int amtDeleted = OuterRingsDeleted();
 				if ( amtDeleted > 0 ){
 					ScoreIncrease( mapActionPoints[ (Score)amtDeleted ] );
-					for (int i = 0; i < amtDeleted; i++){
-						PushRingOut(amtDeleted);
-					}
+					PushRingsOut(amtDeleted);
 				}
 				else {
 					ScoreIncrease( mapActionPoints[Score.BlockSimplyLands] );
@@ -258,9 +256,7 @@ public class SpawnBlocks : MonoBehaviour {
 			gridActiveBlocks[movingBlockPosY+3][movingBlockPosX] = 0;
 			//Destroy(movingBlock);
 			Destroy(gridActiveBlocksGO[movingBlockPosY+3][movingBlockPosX]);
-			//movingBlockPosY++;
 
-			Vector2 oldPos = new Vector2 ( movingBlockPosX, movingBlockPosY );
 			Vector2 newPos = new Vector2 ( movingBlockPosX, ++movingBlockPosY );
 			Push(newPos);
 
@@ -276,7 +272,7 @@ public class SpawnBlocks : MonoBehaviour {
 		else modifier = -1; 
 
 		int clockX = (int) nfmod ( (float)(movingBlockPosX + modifier), (float)maxBlockPosX + 1);
-		spawnPosX = clockX;
+		//spawnPosX = clockX;
 
 		//check if logic collision happens
 		 //WILL BE OUT OF BOUNDS
@@ -298,17 +294,25 @@ public class SpawnBlocks : MonoBehaviour {
 			Destroy(gridActiveBlocksGO[movingBlockPosY+3][movingBlockPosX]);
 			movingBlockPosX = clockX;
 
-			Vector2 oldPos = new Vector2 ( movingBlockPosX, movingBlockPosY );
 			Vector2 newPos = new Vector2 ( clockX, movingBlockPosY );
 			Push(newPos);
 			//DebugGrid();
-			
-			
+
 		}
 	}
 
-	void PushRingOut(int pushDist){
-		
+	void PushRingsOut(int pushDist){
+		for (int y=gridActiveBlocks.Length - 1 - pushDist; y >= 0; y--){
+			for (int x=0; x < gridActiveBlocks[0].Length; x++){
+				if (gridActiveBlocks[y][x] != 0){
+					gridActiveBlocks[y][x] = 0;
+					Destroy(gridActiveBlocksGO[y][x]);
+					Vector2 newPos = new Vector2 ( x, y+1-3 );
+					Push(newPos);
+					gridActiveBlocksGO[y+1][x].renderer.material.color = OurColors[ColorNames.LANDED];
+				}
+			}
+		}
 	}
 
 	Vector3 CalcBlockRenderPos( Vector2 pos ){
@@ -339,9 +343,9 @@ public class SpawnBlocks : MonoBehaviour {
 		}
 		else {
 			string lines = "";
-			for (int i=0; i <= gridActiveBlocksGO.Length; i++){
+			for (int i=0; i < gridActiveBlocksGO.Length; i++){
 				string line = "";
-				for (int j=0; j <= gridActiveBlocksGO[0].Length; j++){
+				for (int j=0; j < gridActiveBlocksGO[0].Length; j++){
 					line += "(null) ";
 				}
 				line += "\n";
@@ -355,9 +359,9 @@ public class SpawnBlocks : MonoBehaviour {
 	void DebugGridGO(){
 		
 		string lines = "";
-		for (int i=0; i <= gridActiveBlocksGO.Length; i++){
+		for (int i=0; i < gridActiveBlocksGO.Length; i++){
 			string line = "i";
-			for (int j=0; j <= gridActiveBlocksGO[0].Length; j++){
+			for (int j=0; j < gridActiveBlocksGO[0].Length; j++){
 				line+="j";
 				if ( gridActiveBlocksGO[i][j] != null )
 					line += gridActiveBlocksGO[i][j] + " @ (" +i+ ","+j+")" ;
