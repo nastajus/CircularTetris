@@ -1,0 +1,3 @@
+forgot to handle cleanup by not deleting my 
+integer array. also pushed objects didn't get 
+their color updated.
