@@ -4,17 +4,10 @@ CircularTetris
 ![readme image][1]
 
 ####Status
-<<<<<<< HEAD
 Incomplete mechanic, only single blocks, no [tetrominoes](http://en.wikipedia.org/wiki/Tetromino) yet. See current state here http://youtu.be/vKyGzxgiszk, and recent but older here http://youtu.be/amEUBZ6Bh-U  
 
 ####Gameplay
 Basic GUI, basic restart, game over screens. Requires mouse with scroll wheel. Due to the circular nature, there's no [wall kick](http://tetris.wikia.com/wiki/Wall_kick).
-=======
-Incomplete mechanic, only single blocks, no (tetrominoes)[http://en.wikipedia.org/wiki/Tetromino] yet. See current state here http://youtu.be/vKyGzxgiszk, and recent but older here http://youtu.be/amEUBZ6Bh-U  
-
-####Gameplay
-Basic GUI, basic restart, game over screens. Requires mouse with scroll wheel. Due to the circular nature, there's no (wall kick)[http://tetris.wikia.com/wiki/Wall_kick].
->>>>>>> 2d04a271ac47265cb90bb4671bfe5c3587b43f71
 
 ####Credits
 Ian code, Daria concept, Morgan art with Illustrator the grid && blocks, Dante debugged switching to jagged arrays.
