@@ -5,9 +5,9 @@ using System.Collections.Generic;
 public class SpawnBlocks : MonoBehaviour {
 	private float timer;
 	private float blockAdvanceTime;
-	private const float blockAdvanceTimeDecrementFactor = 0.20f;
-	private const float blockAdvanceTimeMax = 0.2f;
-	private const int blocksLandedCounterLevelIncreaseAmount = 5;
+	private const float blockAdvanceTimeDecrementFactor = 0.03f;
+	private const float blockAdvanceTimeMax = 0.05f;
+	private const int blocksLandedCounterLevelIncreaseAmount = 1;
 	private int blocksLandedCounter;
 	private int blockAdvanceTimeLevel;
 
@@ -28,6 +28,8 @@ public class SpawnBlocks : MonoBehaviour {
 	private int score;
 	private AudioSource audRingClear;
 	private AudioSource audBlockLand;
+	private AudioSource audSlide;
+	private AudioSource audMusic;
 	private enum ColorNames { red, orange, yellow, green, blue, blue_dark, purple, LANDED };
 	private Dictionary<ColorNames, Color32> OurColors = new Dictionary<ColorNames, Color32>(){
 		{ColorNames.red , new Color32(238,57,57, 255)},
@@ -69,7 +71,7 @@ public class SpawnBlocks : MonoBehaviour {
 		spawnPosY = 0;
 		blocks = new GameObject("blocks");
 		score = 0;
-		blockAdvanceTime = .1f;
+		blockAdvanceTime = .2f;
 		blocksLandedCounter = 0;
 		blockAdvanceTimeLevel = 1;
 		gridActiveBlocks = new int[13][];
@@ -99,10 +101,12 @@ public class SpawnBlocks : MonoBehaviour {
 
 		//DebugGrid();
 
-
 		audBlockLand = GameObject.Find("AudioEffectBlockLand").GetComponent<AudioSource>();
 		audRingClear = GameObject.Find("AudioEffectRingClear").GetComponent<AudioSource>();
+		audSlide = GameObject.Find("AudioEffectSlide").GetComponent<AudioSource>();
+		audMusic = GameObject.Find("AudioMusic").GetComponent<AudioSource>();
 
+		if ( audMusic != null ) audMusic.Play();
 
 	}
 
@@ -117,6 +121,9 @@ public class SpawnBlocks : MonoBehaviour {
 
 		if (!movingBlockExists & permittedToSpawnExists){
 			Spawn();
+		}
+		else if ( Input.GetKeyDown(KeyCode.Space) ){
+			PushBlockOutMax();
 		}
 
 	}
@@ -212,7 +219,7 @@ public class SpawnBlocks : MonoBehaviour {
 			logicCollision = true;
 
 			movingBlock.renderer.material.color = OurColors[ColorNames.LANDED];
-			audBlockLand.Play();
+			if ( audBlockLand != null ) audBlockLand.Play();
 
 			//DebugGridGO();
 			//Destroy( gridActiveBlocksGO[movingBlockPosY+1+3][movingBlockPosX] );
@@ -264,6 +271,25 @@ public class SpawnBlocks : MonoBehaviour {
 
 		}
 	}
+	
+	void PushBlockOutMax(){
+		for (int y=gridActiveBlocks.Length - 1; y >= 0; y--){
+
+			bool condLowestEmpty = gridActiveBlocks[y][movingBlockPosX] == 0;
+
+			if ( condLowestEmpty ){
+
+				movingBlockPosY = y+1-3;
+
+				gridActiveBlocks[movingBlockPosY-1+3][movingBlockPosX] = 0;
+				Destroy(gridActiveBlocksGO[movingBlockPosY-1+3][movingBlockPosX]);
+
+				Vector2 newPos = new Vector2 ( movingBlockPosX, movingBlockPosY );
+				Push(newPos);
+			}
+		}
+
+	}
 
 	void PushBlockSideways(bool positiveScroll){
 
@@ -299,7 +325,20 @@ public class SpawnBlocks : MonoBehaviour {
 			//DebugGrid();
 
 		}
+
+
+		StartCoroutine("Swoosh");
+
 	}
+
+	IEnumerator Swoosh() {
+		double t0 = AudioSettings.dspTime + 3.0F;
+
+		if ( audSlide != null ) audSlide.Play();
+		yield return null;
+
+	}
+
 
 	void PushRingsOut(int pushDist){
 		for (int y=gridActiveBlocks.Length - 1 - pushDist; y >= 0; y--){
@@ -402,7 +441,7 @@ public class SpawnBlocks : MonoBehaviour {
 			Destroy( go ); 
 		}
 
-		audRingClear.Play();
+		if ( audRingClear != null ) audRingClear.Play();
 		return returnState;
 	}
 

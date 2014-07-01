@@ -12,6 +12,6 @@ Basic GUI, basic restart, game over screens. Requires mouse with scroll wheel. D
 ####Credits
 Ian code, Daria concept, Morgan art with Illustrator the grid && blocks, Dante debugged switching to jagged arrays.
 
-Music source Tetris themed from OC Remix [Tetris_CheDDer_OC_ReMix](http://ocremix.org/game/510/tetris-gb), and Newgrounds: 
+Music source Tetris themed from OC Remix [Tetris_CheDDer_OC_ReMix](http://ocremix.org/game/510/tetris-gb), and Newgrounds: [Arcade Asskickman](http://www.newgrounds.com/audio/listen/556466)
 
   [1]: https://raw.githubusercontent.com/nastajus/CircularTetris/master/README.png
