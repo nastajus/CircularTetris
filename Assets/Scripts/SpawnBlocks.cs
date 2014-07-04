@@ -333,9 +333,7 @@ public class SpawnBlocks : MonoBehaviour {
 	}
 
 	IEnumerator Swoosh() {
-		double t0 = AudioSettings.dspTime + 3.0F;
-
-		if ( audSlide != null ) audSlide.Play();
+		if ( audSlide != null && !gameover) audSlide.Play();
 		yield return null;
 
 	}
@@ -517,9 +515,14 @@ public class SpawnBlocks : MonoBehaviour {
 		GUI.EndGroup();
 
 
-		if ( GMUtext != null)
-			GUI.DrawTexture( new Rect( margin/2, Screen.height - GMUtext.height - margin/2, GMUtext.width, GMUtext.height ), GMUtext );
-
+		//GMU logo
+		if ( GMUtext != null){
+			float h = (Screen.height*0.15f);
+			float ratio = h/GMUtext.height;
+			float w = GMUtext.width*ratio;
+		
+			GUI.DrawTexture( new Rect( margin/2, Screen.height - h - margin/2, w, h ), GMUtext );
+		}
 
 		if (gameover){
 			Rect rctGameOver = new Rect(0,0,Screen.width - HUDsize.x - margin,Screen.height);
