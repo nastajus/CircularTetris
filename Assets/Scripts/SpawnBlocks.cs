@@ -63,13 +63,13 @@ public class SpawnBlocks : MonoBehaviour {
 		{Score.RingsComplete4, 2500}
 	};
 	public Texture GMUtext;
+	private bool webPlayerDetected = false;
+	private bool webPlayerLostFocus = false; //click inside
 
 
 
 	// Use this for initialization
 	void Start () {
-
-
 
 		spawnPosX = 0;
 		spawnPosY = 0;
@@ -102,7 +102,6 @@ public class SpawnBlocks : MonoBehaviour {
 			}
 		}
 
-
 		//DebugGrid();
 
 		audBlockLand = GameObject.Find("AudioEffectBlockLand").GetComponent<AudioSource>();
@@ -118,15 +117,15 @@ public class SpawnBlocks : MonoBehaviour {
 
 		//timer ticks
 		float deltaTick = Time.time - timer;
-		if (deltaTick > blockAdvanceTime){
+		if (deltaTick > blockAdvanceTime && !webPlayerLostFocus){
 			timer += deltaTick;
 			PushBlockOut();
 		}
 
-		if (!movingBlockExists & permittedToSpawnExists){
+		if (!movingBlockExists && permittedToSpawnExists && !webPlayerLostFocus){
 			Spawn();
 		}
-		else if ( Input.GetKeyDown(KeyCode.Space) ){
+		else if ( Input.GetKeyDown(KeyCode.Space) && permittedToSpawnExists){
 			PushBlockOutMax();
 		}
 
@@ -135,7 +134,14 @@ public class SpawnBlocks : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-
+		if( Application.platform == RuntimePlatform.OSXWebPlayer
+		   || Application.platform == RuntimePlatform.WindowsWebPlayer )
+		{
+			webPlayerDetected = true;
+		}
+		else { 
+			webPlayerDetected = false;
+		}
 
 		RaycastHit hit;
 		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -530,12 +536,31 @@ public class SpawnBlocks : MonoBehaviour {
 			GUI.DrawTexture( new Rect( margin/2, Screen.height - h - margin/2, w, h ), GMUtext );
 		}
 
+		if (webPlayerLostFocus){
+			int w = 200; int h = 80;
+			GUI.Box ( new Rect( Screen.width / 3 - w/2, Screen.height / 2 - h/2, w,h), "\nCLICK INSIDE WEB PLAYER\nTO RESUME PLAY" );
+		}
+
 		if (gameover){
 			Rect rctGameOver = new Rect(0,0,Screen.width - HUDsize.x - margin,Screen.height);
 			GUI.DrawTexture( rctGameOver, Resources.Load<Texture> ("Textures/GameOver" ), ScaleMode.ScaleToFit );
 			GUI.Box ( new Rect (Screen.width/2, rctGameOver.yMax + margin, 150, 50 ), "\nPRESS ENTER TO RESTART" );
 		}
 	}
+
+	void OnApplicationFocus(bool focusStatus) {
+		if ( webPlayerDetected && !focusStatus ){
+			webPlayerLostFocus = true;
+		}
+		else if ( webPlayerDetected && focusStatus) {
+			webPlayerLostFocus = false;
+		}
+//			Debug.Log ( focusStatus );
+//			spawnColor = Color.black;
+//			blockAdvanceTime = 2f;
+//		}
+	}
+
 
 	void ResetGame(){
 		Destroy(blocks);
