@@ -25,6 +25,7 @@ public class SpawnBlocks : MonoBehaviour {
 	private bool permittedToSpawnExists;
 	private int spawnPosX;
 	private int spawnPosY;
+	private Color32 spawnColor;
 	private int score;
 	private AudioSource audRingClear;
 	private AudioSource audBlockLand;
@@ -67,6 +68,8 @@ public class SpawnBlocks : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+
+
 
 		spawnPosX = 0;
 		spawnPosY = 0;
@@ -186,6 +189,7 @@ public class SpawnBlocks : MonoBehaviour {
 		movingBlockPosX = 0;
 
 		if (gridActiveBlocks[spawnPosY+3][spawnPosX] == 0 && !gameover){
+			spawnColor = OurColors[(ColorNames)Random.Range( 0, 6 )];
 			movingBlockPosY = spawnPosY;
 			Vector2 newPos = new Vector2 ( spawnPosX, spawnPosY );
 			Push(newPos);
@@ -202,6 +206,7 @@ public class SpawnBlocks : MonoBehaviour {
 		Quaternion blockRot = Quaternion.identity * Quaternion.Euler(0f,0f, 22.5f * newPos.x);
 		movingBlock = (GameObject) Instantiate ( arrayAtomicBlock[(int)newPos.y], blockPos, blockRot );
 		movingBlock.transform.parent = blocks.transform;
+		movingBlock.renderer.material.color = spawnColor;
 		gridActiveBlocksGO[(int)newPos.y+3][(int)newPos.x] = movingBlock;
 		gridActiveBlocks[(int)newPos.y+3][(int)newPos.x] = 1;
 	}
@@ -219,7 +224,7 @@ public class SpawnBlocks : MonoBehaviour {
 		else {
 			logicCollision = true;
 
-			movingBlock.renderer.material.color = OurColors[ColorNames.LANDED];
+			//movingBlock.renderer.material.color = OurColors[ColorNames.LANDED];
 			if ( audBlockLand != null && !gameover) audBlockLand.Play();
 
 			//DebugGridGO();
@@ -347,7 +352,7 @@ public class SpawnBlocks : MonoBehaviour {
 					Destroy(gridActiveBlocksGO[y][x]);
 					Vector2 newPos = new Vector2 ( x, y+1-3 );
 					Push(newPos);
-					gridActiveBlocksGO[y+1][x].renderer.material.color = OurColors[ColorNames.LANDED];
+					//gridActiveBlocksGO[y+1][x].renderer.material.color = OurColors[ColorNames.LANDED];
 				}
 			}
 		}
