@@ -11,6 +11,6 @@ Requires mouse with scroll wheel, a good mouse with works better. Sensitive and 
 
 ####Credits
 Ian code, Daria concept, Morgan art with Illustrator the grid && blocks, Dante debugged switching to jagged arrays.
-Music source Tetris themed from Newgrounds: [Arcade Asskickman](http://www.newgrounds.com/audio/listen/556466), sound effects from SoundCloud: [Sarah Errey's large thump or bump](https://soundcloud.com/search?q=large%20thump%20or%20bump), and [Woosh by Mark DiAngelo](https://soundcloud.com/search?q=woosh%20diangelo), edited out noise with [Audacity][(http://audacity.sourceforge.net/). 
+Music source Tetris themed from Newgrounds: [Arcade Asskickman](http://www.newgrounds.com/audio/listen/556466), sound effects from SoundCloud: [Sarah Errey's large thump or bump](https://soundcloud.com/search?q=large%20thump%20or%20bump), and [Woosh by Mark DiAngelo](https://soundcloud.com/search?q=woosh%20diangelo), edited out noise with [Audacity](http://audacity.sourceforge.net/). 
 
   [1]: https://raw.githubusercontent.com/nastajus/CircularTetris/master/README.png
