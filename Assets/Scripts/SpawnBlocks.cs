@@ -61,6 +61,7 @@ public class SpawnBlocks : MonoBehaviour {
 		{Score.RingsComplete3, 1000}, 
 		{Score.RingsComplete4, 2500}
 	};
+	public Texture GMUtext;
 
 
 
@@ -219,7 +220,7 @@ public class SpawnBlocks : MonoBehaviour {
 			logicCollision = true;
 
 			movingBlock.renderer.material.color = OurColors[ColorNames.LANDED];
-			if ( audBlockLand != null ) audBlockLand.Play();
+			if ( audBlockLand != null && !gameover) audBlockLand.Play();
 
 			//DebugGridGO();
 			//Destroy( gridActiveBlocksGO[movingBlockPosY+1+3][movingBlockPosX] );
@@ -514,6 +515,10 @@ public class SpawnBlocks : MonoBehaviour {
 		//GUI.Box ( rctE, "DERP" ); //sampleBlock.texture
 		GUI.DrawTexture( rctE, sampleBlock.texture, ScaleMode.ScaleToFit);
 		GUI.EndGroup();
+
+
+		if ( GMUtext != null)
+			GUI.DrawTexture( new Rect( margin/2, Screen.height - GMUtext.height - margin/2, GMUtext.width, GMUtext.height ), GMUtext );
 
 
 		if (gameover){
