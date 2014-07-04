@@ -190,6 +190,7 @@ public class SpawnBlocks : MonoBehaviour {
 
 		if (gridActiveBlocks[spawnPosY+3][spawnPosX] == 0 && !gameover){
 			spawnColor = OurColors[(ColorNames)Random.Range( 0, 6 )];
+			//spawnColor = Color.white;
 			movingBlockPosY = spawnPosY;
 			Vector2 newPos = new Vector2 ( spawnPosX, spawnPosY );
 			Push(newPos);
