@@ -38,8 +38,8 @@ public class SpawnBlocks : MonoBehaviour {
 		{ColorNames.yellow , new Color32(221,197,74, 255)},
 		{ColorNames.green , new Color32(106,189,69, 255)},
 		{ColorNames.blue , new Color32(69,197,231, 255)},
-		{ColorNames.blue_dark , new Color32(71,85,165, 255)},
-		{ColorNames.purple , new Color32(132,90,166, 255)},
+		//{ColorNames.blue_dark , new Color32(71,85,165, 255)},
+		//{ColorNames.purple , new Color32(132,90,166, 255)},
 		{ColorNames.LANDED , new Color32(1,128,255, 255)}
 	};
 	private enum Tetronimo { I, O, T, J, L, S, Z };
@@ -49,8 +49,8 @@ public class SpawnBlocks : MonoBehaviour {
 		{Tetronimo.T, ColorNames.yellow},
 		{Tetronimo.J, ColorNames.green},
 		{Tetronimo.L, ColorNames.blue},
-		{Tetronimo.S, ColorNames.blue_dark},
-		{Tetronimo.Z, ColorNames.purple}
+		//{Tetronimo.S, ColorNames.blue_dark},
+		//{Tetronimo.Z, ColorNames.purple}
 	};
 	private bool gameover = false;
 	private GameObject blocks; //holder
@@ -195,7 +195,7 @@ public class SpawnBlocks : MonoBehaviour {
 		movingBlockPosX = 0;
 
 		if (gridActiveBlocks[spawnPosY+3][spawnPosX] == 0 && !gameover){
-			spawnColor = OurColors[(ColorNames)Random.Range( 0, 6 )];
+			spawnColor = OurColors[(ColorNames)Random.Range( 0, 6-2 )];
 			//spawnColor = Color.white;
 			movingBlockPosY = spawnPosY;
 			Vector2 newPos = new Vector2 ( spawnPosX, spawnPosY );
